@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#ffffff" />
+  
+  <!-- Divider -->
+  <line x1="400" y1="50" x2="400" y2="350" stroke="#333" stroke-width="2" stroke-dasharray="5,5" />
+  
+  <!-- Left Side: PID -->
+  <text x="200" y="40" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="24" font-weight="bold">PID-based</text>
+  
+  <!-- PID Symbol -->
+  <g>
+    <circle cx="200" cy="100" r="30" fill="#FFCDD2" stroke="#D32F2F" stroke-width="2" />
+    <text x="200" y="105" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="16" font-weight="bold">1234</text>
+  </g>
+  
+  <!-- PID can refer to different processes -->
+  <g>
+    <!-- Process 1 -->
+    <rect x="120" y="160" width="160" height="60" rx="5" fill="#A5D6A7" stroke="#388E3C" stroke-width="2" />
+    <text x="200" y="195" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Process A (PID: 1234)</text>
+    
+    <!-- Dies and PID recycled arrow -->
+    <line x1="200" y1="220" x2="200" y2="260" stroke="#D32F2F" stroke-width="2" stroke-dasharray="4,4" />
+    <polygon points="200,260 195,250 205,250" fill="#D32F2F" />
+    <text x="250" y="245" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="14">Dies, PID recycled</text>
+    
+    <!-- Process 2 -->
+    <rect x="120" y="270" width="160" height="60" rx="5" fill="#FFCCBC" stroke="#E64A19" stroke-width="2" />
+    <text x="200" y="305" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Process B (PID: 1234)</text>
+    
+    <!-- Ambiguity lines from PID to both processes -->
+    <line x1="200" y1="130" x2="200" y2="160" stroke="#D32F2F" stroke-width="2" />
+    <line x1="200" y1="130" x2="200" y2="160" stroke="#D32F2F" stroke-width="2" />
+    <line x1="200" y1="130" x2="200" y2="270" stroke="#D32F2F" stroke-width="2" stroke-dasharray="3,3" />
+  </g>
+  
+  <!-- Right Side: PIDFD -->
+  <text x="600" y="40" text-anchor="middle" fill="#388E3C" font-family="Arial" font-size="24" font-weight="bold">pidfd-based</text>
+  
+  <!-- File Descriptor Symbol -->
+  <g>
+    <rect x="560" y="80" width="80" height="40" rx="5" fill="#C8E6C9" stroke="#388E3C" stroke-width="2" />
+    <text x="600" y="105" text-anchor="middle" fill="#388E3C" font-family="Arial" font-size="16" font-weight="bold">pidfd: 5</text>
+  </g>
+  
+  <!-- Process -->
+  <g>
+    <!-- Process 1 -->
+    <rect x="520" y="160" width="160" height="60" rx="5" fill="#A5D6A7" stroke="#388E3C" stroke-width="2" />
+    <text x="600" y="195" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Process A (PID: 1234)</text>
+    
+    <!-- Even when it dies, pidfd refers to same thing -->
+    <line x1="600" y1="220" x2="600" y2="260" stroke="#388E3C" stroke-width="2" />
+    <polygon points="600,260 595,250 605,250" fill="#388E3C" />
+    <text x="660" y="245" text-anchor="middle" fill="#388E3C" font-family="Arial" font-size="14">Stable reference</text>
+    
+    <!-- Pidfd still refers to original process -->
+    <rect x="520" y="270" width="160" height="60" rx="5" fill="#A5D6A7" stroke="#388E3C" stroke-width="2" opacity="0.5" />
+    <text x="600" y="305" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Process A (zombie)</text>
+    
+    <!-- Direct reference from Pidfd to Process A only -->
+    <line x1="600" y1="120" x2="600" y2="160" stroke="#388E3C" stroke-width="2" />
+    <line x1="600" y1="120" x2="600" y2="270" stroke="#388E3C" stroke-width="2" />
+  </g>
+  
+  <!-- Annotations -->
+  <text x="200" y="365" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="16">Global, can be recycled</text>
+  <text x="600" y="365" text-anchor="middle" fill="#388E3C" font-family="Arial" font-size="16">Private, stable reference</text>
+</svg>

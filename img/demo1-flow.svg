@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="700" height="500" viewBox="0 0 700 500">
+  <defs>
+    <style>
+      .trusted-box { 
+        fill: #d4edda;
+        stroke: #28a745;
+        stroke-width: 2px;
+      }
+      .malicious-box { 
+        fill: #f8d7da;
+        stroke: #dc3545;
+        stroke-width: 2px;
+      }
+      .neutral-box {
+        fill: #e2e3e5;
+        stroke: #6c757d;
+        stroke-width: 2px;
+      }
+      .warning-box {
+        fill: #fff3cd;
+        stroke: #ffc107;
+        stroke-width: 2px;
+      }
+      .text {
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        text-anchor: middle;
+      }
+      .small-text {
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        text-anchor: middle;
+      }
+      .trusted-text {
+        fill: #155724;
+      }
+      .malicious-text {
+        fill: #721c24;
+      }
+      .neutral-text {
+        fill: #383d41;
+      }
+      .warning-text {
+        fill: #856404;
+      }
+      .trusted-arrow {
+        stroke: #28a745;
+        stroke-width: 2px;
+        fill: none;
+        marker-end: url(#trusted-arrowhead);
+      }
+      .malicious-arrow {
+        stroke: #dc3545;
+        stroke-width: 2px;
+        fill: none;
+        marker-end: url(#malicious-arrowhead);
+      }
+      .neutral-arrow {
+        stroke: #6c757d;
+        stroke-width: 2px;
+        fill: none;
+        marker-end: url(#neutral-arrowhead);
+      }
+      .warning-arrow {
+        stroke: #ffc107;
+        stroke-width: 2px;
+        fill: none;
+        marker-end: url(#warning-arrowhead);
+      }
+    </style>
+    <marker id="trusted-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#28a745" />
+    </marker>
+    <marker id="malicious-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc3545" />
+    </marker>
+    <marker id="neutral-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6c757d" />
+    </marker>
+    <marker id="warning-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffc107" />
+    </marker>
+  </defs>
+
+  <!-- Original process -->
+  <rect x="100" y="50" width="300" height="60" class="trusted-box" />
+  <text x="250" y="90" class="text trusted-text">Original process (PID 1234)</text>
+
+  <!-- Arrow down -->
+  <line x1="250" y1="110" x2="250" y2="140" class="trusted-arrow" />
+
+  <!-- Process exits -->
+  <rect x="100" y="150" width="300" height="60" class="trusted-box" />
+  <text x="250" y="190" class="text trusted-text">Process exits</text>
+
+  <!-- Arrow down -->
+  <line x1="250" y1="210" x2="250" y2="240" class="neutral-arrow" />
+
+  <!-- PID reused -->
+  <rect x="100" y="250" width="300" height="60" class="neutral-box" />
+  <text x="250" y="290" class="text neutral-text">PID 1234 becomes available</text>
+
+  <!-- Loop of process creation -->
+  <rect x="100" y="350" width="300" height="100" class="malicious-box" />
+  <text x="250" y="380" class="text malicious-text">Rapidly spawn processes</text>
+  <text x="250" y="410" class="small-text malicious-text">while (pid != target_pid) {</text>
+  <text x="250" y="430" class="small-text malicious-text">  pid = fork(); }</text>
+
+  <!-- Arrow down -->
+  <line x1="250" y1="310" x2="250" y2="340" class="malicious-arrow" />
+  
+  <!-- Success - reuse -->
+  <rect x="500" y="350" width="150" height="100" class="warning-box" />
+  <text x="575" y="380" class="text warning-text">Success!</text>
+  <text x="575" y="410" class="small-text warning-text">New process</text>
+  <text x="575" y="430" class="small-text warning-text">has PID 1234</text>
+  
+  <!-- Arrow connecting loop to success -->
+  <path d="M 400 400 L 450 400 L 490 400" class="warning-arrow" />
+</svg>

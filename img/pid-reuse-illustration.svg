@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#faf9f5" />
+  
+  <!-- Timeline -->
+  <line x1="100" y1="350" x2="700" y2="350" stroke="#333" stroke-width="3" />
+  <text x="400" y="380" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Time</text>
+  
+  <!-- Process 1 - Original Worker -->
+  <g>
+    <rect x="150" y="100" width="180" height="80" rx="5" fill="#A5D6A7" stroke="#388E3C" stroke-width="2" />
+    <text x="240" y="145" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">Worker Process</text>
+    <text x="240" y="170" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">PID: 1234</text>
+    
+    <!-- Process Start Arrow -->
+    <line x1="150" y1="350" x2="150" y2="190" stroke="#333" stroke-width="2" />
+    <polygon points="150,190 145,200 155,200" fill="#333" />
+    <text x="150" y="365" text-anchor="middle" fill="#333" font-family="Arial" font-size="14">Start</text>
+  </g>
+  
+  <!-- Process 1 Death -->
+  <g>
+    <line x1="330" y1="350" x2="330" y2="100" stroke="#D32F2F" stroke-width="2" stroke-dasharray="5,5" />
+    <text x="330" y="365" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="14">Exit</text>
+    <text x="380" y="80" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="16">PID 1234 freed</text>
+  </g>
+  
+  <!-- Supervisor Still Holding PID -->
+  <g>
+    <rect x="150" y="220" width="350" height="60" rx="5" fill="#BBDEFB" stroke="#1976D2" stroke-width="2" />
+    <text x="325" y="255" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Supervisor still tracking PID 1234</text>
+  </g>
+  
+  <!-- Process 2 - Unrelated Process -->
+  <g>
+    <rect x="450" y="100" width="180" height="80" rx="5" fill="#FFCCBC" stroke="#E64A19" stroke-width="2" />
+    <text x="540" y="135" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">Unrelated Process</text>
+    <text x="540" y="160" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">Gets PID: 1234</text>
+    
+    <!-- Process Start Arrow -->
+    <line x1="450" y1="350" x2="450" y2="190" stroke="#333" stroke-width="2" />
+    <polygon points="450,190 445,200 455,200" fill="#333" />
+    <text x="450" y="365" text-anchor="middle" fill="#333" font-family="Arial" font-size="14">Start New Process</text>
+  </g>
+  
+  <!-- The Problem: Signal Sent to Wrong Process -->
+  <g>
+    <line x1="550" y1="350" x2="550" y2="190" stroke="#D32F2F" stroke-width="3" />
+    <polygon points="550,190 545,200 555,200" fill="#D32F2F" />
+    <text x="550" y="365" text-anchor="middle" fill="#D32F2F" font-family="Arial" font-size="14">Signal Sent</text>
+    
+    <path d="M 500,250 L 530,250 L 550,220 L 570,250 L 600,250" fill="none" stroke="#D32F2F" stroke-width="3" />
+    <text x="640" y="250" font-family="Arial" font-size="18" fill="#D32F2F">WRONG TARGET!</text>
+  </g>
+</svg>

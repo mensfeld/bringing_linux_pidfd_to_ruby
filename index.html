@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bringing Linux pidfd to Ruby</title>
+  <link rel="stylesheet" href="assets/reset.min.css">
+  <link rel="stylesheet" href="assets/reveal.min.css">
+  <link rel="stylesheet" href="assets/white.min.css">
+  <link rel="stylesheet" href="assets/monokai.min.css">
+
+  <script src="assets/reveal.js"></script>
+  <script src="assets/notes.min.js"></script>
+  <script src="assets/highlight.min.js"></script>
+
+  <style>
+    body, .reveal {
+      background-color: #faf9f5;
+      font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
+      font-weight: 400;
+    }
+    
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      text-transform: none;
+      color: #333;
+      font-family: 'Literata', Georgia, serif;
+      font-weight: 600;
+    }
+    
+    .reveal pre {
+      margin: 15px 0;
+      width: 100%;
+      box-shadow: 0 0 6px rgba(0,0,0,0.15);
+    }
+    
+    .reveal pre code {
+      max-height: 500px;
+      font-size: 1.1em;
+      line-height: 1.3;
+      padding: 12px;
+    }
+    
+    .reveal section img {
+      margin: 15px 0;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+    
+    .two-cols {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .col {
+      width: 48%;
+    }
+    
+    .problem {
+      color: #C25450;
+    }
+    
+    .solution {
+      color: #D42A2A;
+    }
+    
+    .highlight {
+      color: #5F88A5;
+    }
+    
+    .secondary {
+      color: #9F8C76;
+    }
+    
+    .quote {
+      font-style: italic;
+      margin: 30px 0;
+      font-size: 1.2em;
+      color: #666;
+    }
+    
+    .center-content {
+      text-align: center;
+    }
+    
+    .reveal .code-focus .focus-line {
+      background: #ffff99;
+      color: #333;
+    }
+    
+    .animated-box {
+      border: 2px solid transparent;
+      padding: 10px;
+      border-radius: 5px;
+      transition: all 0.5s ease;
+    }
+    
+    .animated-box.problem-box {
+      border-color: rgba(194, 84, 80, 0.5);
+      background-color: rgba(194, 84, 80, 0.05);
+    }
+    
+    .animated-box.solution-box {
+      border-color: rgba(125, 156, 91, 0.5);
+      background-color: rgba(125, 156, 91, 0.05);
+    }
+    
+    .emoji {
+      font-size: 2em;
+    }
+    
+    .emphasize {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+.reveal {
+  font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
+
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+  font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
+  font-weight: 600;
+}
+
+
+    .asciinema-terminal .line .asciinema-footer {
+  display: none !important;
+}
+
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <!-- TITLE SLIDE -->
+      <section  data-transition="fade-in">
+        <h1>Bringing Linux pidfd to Ruby</h1>
+        <p class="" style="margin-top: 5%">RubyKaigi 2025</p>
+      </section>
+
+      <!-- ABOUT ME -->
+      <section>
+        <h2>About Me</h2>
+        <ul>
+          <li class="ffade-in">Maciej Mensfeld</li>
+          <li class="fragment fade-in">Software Architect</li>
+          <li class="fragment fade-in">17+ years in Ruby</li>
+        </ul>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Work @ Mend.io</h2>
+        <p class="">Supply Chain Security & AI/LLM Security</p>
+        <img style="box-shadow: none; min-width: 50%" src="img/mend.svg" alt="Mend Logo">
+      </section>
+
+
+
+      <section data-auto-animate>
+        <h2>Creator of Karafka</h2>
+        <p class="">Ruby & Rails Kafka Processing Framework</p>
+        <img style="box-shadow: none; max-width: 70%" src="assets/karafka_logotype_transparent2.png" alt="Karafka Logo">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Maintainer of Shoryuken</h2>
+        <p class="">A efficient Amazon SQS processor for Ruby</p>
+
+        <p>(no logo yet, working on it)</p>
+      </section>
+
+      <!-- OPEN SOURCE -->
+      <section data-auto-animate>
+        <h2>RubyGems Security Team Member</h2>
+
+        <img style="box-shadow: none; max-width: 20%" src="assets/rubygems.svg" alt="RubyGems Logo">
+      </section>
+
+<section data-transition="fade">
+  <h2>Today's Journey</h2>
+  
+  <ol class="fragment" style="font-size: 1.2em; line-height: 1.5;">
+    <li>Challenges</li>
+    <li>Solutions</li>
+    <li>Implementation</li>
+    <li>Lessons & Future Directions</li>
+  </ol>
+</section>
+
+      <!-- INTRODUCTION -->
+      <section>
+        <h1>I Love Ruby<span class="fragment">Kaigi</span></h1>
+      </section>
+
+
+<section data-transition="fade">
+  <h2>But I'm Not Delusional</h2>
+  
+  <div class="fragment fade-in" style="margin-top: 30px;">
+    <p class="highlight" style="font-size: 1.2em;">Use the right tools for the job...</p>
+  </div>
+  
+  <div class="fragment fade-in" style="margin-top: 30px;">
+    <p  style="font-size: 1.2em;">...but also make <span class="solution">Ruby</span> the right tool to do more!</p>
+  </div>
+</section>
+
+      <!-- THE CHALLENGE 1 -->
+      <section data-auto-animate>
+        <h2>The Challenge</h2>
+        <div class="">
+          <p class="fragment">Karafka is multi-threaded</p>
+          <p class="fragment">Ruby has a Global VM Lock (GVL)</p>
+        </div>
+        
+      </section>
+
+      <!-- THE CHALLENGE 2 -->
+      <section data-auto-animate>
+        <div class="two-cols">
+          <div class="col fade-right">
+            <div class="animated-box solution-box">
+              <p><span class="emoji">✓</span> 80%</p>
+              <p>I/O-bound tasks</p>
+              <p>Perfect for threads</p>
+            </div>
+          </div>
+          <div class="col fade-left">
+            <div class="animated-box problem-box">
+              <p><span class="emoji">⚠️</span> 20%</p>
+              <p>CPU-intensive tasks</p>
+              <p class="problem">Limited by the GVL</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style="font-size: 70%;" data-auto-animate>
+        <h2>The I/O-bound Myth</h2>
+
+        <div class="animated-box problem-box fade-in">
+          <p><span class="emoji" style="font-size: 90%">🤔</span> Users often misunderstand their CPU boundaries</p>
+        </div>
+        
+        <div class="two-cols" style="margin-top: 20px;">
+          <div class="col fragment fade-right">
+            <div class="animated-box problem-box">
+              <p><strong>Hidden CPU costs:</strong></p>
+              <ul>
+                <li>Data deserialization (JSON, Avro)</li>
+                <li>Content filtering</li>
+                <li>Content searching</li>
+                <li>Data transformation</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col fragment fade-left">
+            <div class="animated-box solution-box">
+              <p class="quote" style="font-size: 0.9em;">"If these applications were really spending the overwhelming majority of their time waiting on I/O, it would be impossible for YJIT to perform this well overall."</p>
+              <p style="font-size: 0.8em;">— Jean Boussier (byroot)</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="fragment fade-in" style="margin-top: 20px;">
+          <p>Even in stream processing, I/O may be just a fraction of the total workload</p>
+        </div>
+        
+      </section>
+
+      <!-- THE GOAL -->
+      <section data-transition="convex">
+        <h2>The Goal</h2>
+        <p class="fragment">Add CPU-friendly Parallelization to Karafka and Shoryuken</p>
+        
+      </section>
+
+<section style="font-size: 80%" data-auto-animate>
+  <h2>CPU Parallelization Options</h2>
+  
+  <div class="two-cols">
+    <div class="col fragment fade-right">
+      <div class="animated-box solution-box">
+        <p><span class="emoji" style="font-size: 90%">🧵</span> Ractors</p>
+        <ul>
+          <li>Built into Ruby 3+</li>
+          <li>Actor-based concurrency</li>
+          <li>Share-nothing design</li>
+          <li>Message passing</li>
+          <li>Experimental status</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left">
+      <div class="animated-box solution-box">
+        <p><span class="emoji"  style="font-size: 90%">🔀</span> Processes (fork)</p>
+        <ul>
+          <li>Mature Unix feature</li>
+          <li>Complete isolation</li>
+          <li>True OS-level parallelism</li>
+          <li>Higher memory overhead</li>
+          <li>Production-proven</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="fragment fade-in" style="margin-top: 20px;">
+    <p>Both bypass the Global VL Lock for true parallel execution</p>
+  </div>
+  
+</section>
+
+<section style="font-size: 70%;"  data-transition="convex">
+  <h2>Ractors: Current Reality</h2>
+  
+  <div class="animated-box problem-box fragment fade-in">
+    <p><span class="emoji" style="font-size: 90%">📉</span> JSON parsing benchmark (Bug #19288)</p>
+    <pre style="font-size: 0.8em; margin: 10px 0;"><code>
+no Ractor:
+  1.742630   0.023948   1.766578 (  1.770248)
+Ractor
+  12.724407   1.142691  13.867098 (  4.854311)
+    </code></pre>
+    <p style="font-size: 0.9em;">Ractors are ~3x slower for CPU-intensive operations</p>
+  </div>
+</section>
+
+      <section  data-transition="convex">
+        <h2>So... forks!</h2>
+      </section>
+
+      <!-- THE ARCHITECTURE -->
+      <section style="font-size: 70%">
+        <h2>The Architecture</h2>
+        <img src="img/architecture-illustration.svg" alt="Supervisor-Worker Model" style="width: 80%; box-shadow: none">
+      </section>
+
+      <!-- FIRST ATTEMPT INTRO -->
+      <section data-transition="fade">
+        <h2>First Attempt</h2>
+        <p class="quote fade-in">"Like any good Rubyist, I KISS..."</p>
+      </section>
+
+      <!-- PID-BASED FORK -->
+      <section >
+        <h2>PID-Based Fork</h2>
+        <pre><code class="ruby" data-line-numbers="2-5|7">def fork_workers(count = 4)
+  count.times do
+    pid = fork do
+      Karafka::Cli::Server.call
+    end
+    
+    @worker_pids << pid
+  end
+end</code></pre>
+      </section>
+
+      <!-- PID-BASED SIGNALS -->
+      <section >
+        <h2>PID-Based Signals</h2>
+        <pre><code class="ruby" data-line-numbers="2-4|3">def stop_workers
+  @worker_pids.each do |pid|
+    Process.kill(:TERM, pid)
+  end
+end</code></pre>
+        
+      </section>
+
+      <!-- PID-BASED WAIT -->
+      <section data-auto-animate>
+        <h2>PID-Based Wait</h2>
+        <pre><code class="ruby" data-line-numbers="2-4|3">def wait_for_workers
+  @worker_pids.each do |pid|
+    Process.waitpid(pid)
+  end
+end</code></pre>
+        
+      </section>
+
+      <!-- IT WORKED -->
+      <section data-transition="concave">
+        <h2>Initial Results</h2>
+        <p class="center-content">It worked!</p>
+        <p class="fade-in center-content">(in development)</p>
+        
+      </section>
+
+      <!-- THE REVELATION INTRO -->
+      <section data-auto-animate>
+        <h2>The Code Review</h2>
+        <p class="quote fade-in">I showed my work to KJ Tsanaktsidis from the Ruby Core team...</p>
+        
+      </section>
+
+      <!-- KJ FEEDBACK -->
+      <section data-auto-animate>
+        <h2>KJ's Feedback</h2>
+
+
+        <img class="" src="img/kj.png" alt="KJ">
+
+        <div class=" fade-in">
+          <p class="quote">"Pidfds are absolutely the right professional API!"</p>
+        </div>
+        
+      </section>
+
+      <!-- OH NO -->
+      <section data-transition="zoom">
+        <h2>My Reaction</h2>
+        <p class="center-content emoji">🤔</p>
+        
+      </section>
+
+      <!-- PROBLEMS INTRO -->
+      <section data-transition="fade">
+        <h2>The Problems</h2>
+        <p class="center-content fragment fade-in">There were some flaws in my approach</p>
+        
+      </section>
+
+      <!-- PROBLEM 1 INTRO -->
+      <section data-auto-animate>
+        <h2>Problem 1</h2>
+        <p class="problem center-content fragment">PID Reuse</p>
+      </section>
+
+      <!-- PID REUSE EXPLAINED -->
+      <section data-auto-animate>
+        <h2>PID Reuse</h2>
+        <ul>
+          <li class="fade-up">PIDs are just numbers</li>
+          <li class="fragment fade-up">Limited pool</li>
+          <li class="fragment fade-up">Recycled when processes terminate</li>
+        </ul>
+        
+      </section>
+
+      <!-- PID REUSE VISUALIZED -->
+      <section data-auto-animate>
+        <h3>PID Reuse Visualized</h3>
+        <img class="fragment" style="box-shadow: none;" src="img/pid-reuse-illustration.svg" alt="Supervisor-Worker Model">
+
+      </section>
+
+
+<section>
+  <h2>A Familiar Experience?</h2>
+  
+  <pre><code class="bash" data-line-numbers="1|2|4|5">ps aux | grep ruby
+user     12345  2.5  0.8  Sl   10:25   0:18 ruby app.rb
+
+kill -9 12345
+bash: kill: (12345) - No such process
+</code></pre>
+  <div class="animated-box solution-box fragment fade-in" style="margin-top: 20px;">
+    <p>The same race condition can affect Ruby code!</p>
+  </div>
+</section>
+
+
+
+      <!-- PID REUSE IMPACT -->
+      <section data-auto-animate>
+        <h2>PID Reuse Impact</h2>
+        <ul>
+          <li class="fragment fade-up problem">Sending signals to wrong processes</li>
+          <li class="fragment fade-up problem">Incorrect monitoring results</li>
+          <li class="fragment fade-up problem">Potential security issues</li>
+        </ul>
+      </section>
+
+<section data-auto-animate>
+  <h2>PID Security Issues</h2>
+  <ul>
+    <li class="fragment fade-up problem">CVE-2019-6133: PID race allowed sandbox escape</li>
+    <li class="fragment fade-up problem">PID recycling enables privilege escalation attacks</li>
+    <li class="fragment fade-up problem">Mistakenly terminating critical system processes</li>
+  </ul>
+  
+</section>
+
+      <section>
+        <img class="fragmenta" src="img/demo1-flow.svg" style="max-width: 700px; box-shadow: none; margin-top: -25px;" alt="demo1flow">
+      </section>
+
+      <section>
+        <script data-cols="80" data-rows="20" src="https://asciinema.org/a/4dkJMLMQCaejFwkRJjOu3e1Au.js" id="asciicast-4dkJMLMQCaejFwkRJjOu3e1Au" async="true"></script>
+      </section>
+
+      <!-- PROBLEM 2 INTRO -->
+      <section data-transition="fade">
+        <h2>Problem 2</h2>
+        <p class="problem center-content fragment">Signal Race Conditions</p>
+        
+      </section>
+
+
+<section data-auto-animate style="font-size: 70%">
+  <h2>The Execution Environment Challenge</h2>
+  
+  <div class="two-cols">
+    <div class="col fade-right">
+      <div class="animated-box problem-box">
+        <h3>Execution Environments</h3>
+        <p><span class="emoji"  style="font-size: 90%">🏗️</span> Puma, Karafka, Shoryuken</p>
+        <ul>
+          <li>Manage process lifecycle</li>
+          <li>Need global signal traps</li>
+          <li>Control worker processes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left">
+      <div class="animated-box problem-box">
+        <h3>Libraries Running Within</h3>
+        <p><span class="emoji"  style="font-size: 90%">📚</span> User code, gems, libraries</p>
+        <ul>
+          <li>May fork their own processes</li>
+          <li>Need reliable wait/signal</li>
+          <li>No control over parent's traps</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="fragment fade-in animated-box solution-box" style="margin-top: 20px;">
+    <p>Signal handlers are global per-process - creating fundamental conflicts</p>
+  </div>
+</section>
+
+
+      <!-- SIGNAL RACES EXPLAINED -->
+      <section data-auto-animate>
+        <h2>Signal Races</h2>
+        <ul>
+          <li class="fragment fade-up">SIGCHLD sent when child exits</li>
+          <li class="fragment fade-up">Any code can set a SIGCHLD handler</li>
+          <li class="fragment fade-up">First handler to call waitpid wins</li>
+          <li class="fragment fade-up">Exit status can only be retrieved once</li>
+        </ul>
+      </section>
+
+<section data-auto-animate>
+        <pre><code class="ruby" data-line-numbers="1-4"># Process level handler
+Signal.trap(:CHLD) do
+  begin
+    pid, status = Process.waitpid2(-1, Process::WNOHANG)
+    if pid
+      puts "MAIN: Signal handler reaped child" \
+        " PID #{pid} (exit code: #{status.exitstatus})"
+    end
+  rescue Errno::ECHILD
+    # No children left to reap
+  end
+end
+</code></pre>
+</section>
+
+<section  data-transition="slide">
+        <pre><code class="ruby" data-line-numbers="1-5"># Library level handler
+begin
+  waited_pid, status = Process.waitpid2(pid)
+  puts "LIBRARY: Successfully reaped PID #{waited_pid}"
+  return status
+rescue Errno::ECHILD
+  puts "LIBRARY: ERROR - Child PID #{pid} was reaped"
+  return nil
+end
+</code></pre>
+</section>
+
+      <section data-auto-animate>
+        <img class="fragmenta" src="img/signal-race-timeline.svg" style="box-shadow: none; width: 1200px;" alt="demo2flow">
+      </section>
+
+      <section data-visibility="hidden" data-auto-animate>
+        <script data-cols="80" data-rows="20" src="https://asciinema.org/a/8qwm1OkG4kdDHzu4fpnEzdJ5Y.js" id="asciicast-8qwm1OkG4kdDHzu4fpnEzdJ5Y" async="true"></script>
+      </section>
+
+
+<section data-transition="fade" style="font-size: 70%">
+  <h2>Exit Code Races: Not Solved fully by pidfd</h2>
+  
+  <div class="animated-box problem-box fragment fade-in">
+    <p><span class="emoji"  style="font-size: 90%">⚠️</span> Even with pidfd, exit code races remain:</p>
+    <ul>
+      <li>When a child process exits, its exit code can only be retrieved <em>once</em></li>
+      <li>The first code to call <code>waitpid</code> or <code>waitid</code> "wins"</li>
+      <li>Subsequent attempts receive <code>ECHILD</code> error</li>
+    </ul>
+  </div>
+  
+  <div class="two-cols" style="margin-top: 20px;">
+    <div class="col fragment fade-right">
+      <div class="animated-box problem-box">
+        <p><strong>What pidfd CAN'T solve:</strong></p>
+        <ul>
+          <li>Exit code retrieval races</li>
+          <li>Signal trap conflicts</li>
+          <li>SIGCHLD interception</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left">
+      <div class="animated-box solution-box">
+        <p><strong>What pidfd DOES solve:</strong></p>
+        <ul>
+          <li>PID reuse issues</li>
+          <li>Process state monitoring</li>
+          <li>Race-free signal delivery</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="fragment fade-in" style="margin-top: 20px;">
+    <p>For complete process management, careful architectural design is still required!</p>
+  </div>
+</section>
+
+<section data-transition="fade">
+  <h2>Problem 3</h2>
+  <p class="problem center-content fragment">Process Hierarchy Limitations</p>
+  
+  <ul class="fragment">
+    <li>SIGCHLD only sent to immediate parent</li>
+    <li>No built-in tracking of process trees</li>
+    <li>Orphaned processes reassigned to init (PID 1)</li>
+    <li>No direct way to monitor non-child processes</li>
+  </ul>
+  
+</section>
+
+      <!-- PID VS PIDFD -->
+      <section data-auto-animate>
+        <img class="fragmenta" src="img/process-hierarchy-svg-improved.svg" alt="Supervisor-Worker Model" style="box-shadow: none;">
+      </section>
+
+<!-- PIDFD NON-CHILD SOLUTION -->
+<section data-auto-animate>
+        <h2>PID-based Polling</h2>
+        <pre><code class="ruby"># Poll every second
+Thread.new do
+  loop do
+    begin
+      # Try sending signal 0 to check existence
+      Process.kill(0, pid)
+      puts "Process #{pid} is running"
+    rescue Errno::ESRCH
+      puts "Process #{pid} has exited"
+      break
+    end
+    sleep 1  # CPU waste, latency
+  end
+end
+</code></pre>
+
+</section>
+
+      <!-- RAILS AND WEB SERVER CONTEXT -->
+      <section data-transition="fade">
+        <h2>PID usage in Ruby</h2>
+        <ul>
+          <li class="fragment fade-up">Puma, Unicorn, Sidekiq, Pitchfork already handle forking</li>
+          <li class="fragment fade-up">All use PID-based tracking</li>
+          <li class="fragment fade-up">io-event is the only Ruby lib using pidfd (so far)</li>
+        </ul>
+      </section>
+
+      <!-- WHAT IS PIDFD -->
+      <section data-auto-animate>
+        <h2>pidfd to the rescue</h2>
+        <ul>
+          <li class="fragment fade-up">Process File Descriptor</li>
+          <li class="fragment fade-up">Added in Linux 5.3 (2019)</li>
+          <li class="fragment fade-up">Stable reference to a process</li>
+          <li class="fragment fade-up">Solves two out of our three problems</li>
+        </ul>
+      </section>
+
+<section style="font-size: 80%" data-auto-animate>
+  <h2>What is a File Descriptor?</h2>
+  
+  <div class="two-cols">
+    <div class="col fade-right">
+      <div class="animated-box solution-box">
+        <h3>Basics</h3>
+        <ul>
+          <li>Integer handle to a system resource</li>
+          <li>Core UNIX abstraction</li>
+          <li>Referenced by number (e.g., 0, 1, 2)</li>
+          <li>Managed by the kernel</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fade-left">
+      <div class="animated-box solution-box">
+        <h3>Common FDs</h3>
+        <ul>
+          <li>0: Standard input (stdin)</li>
+          <li>1: Standard output (stdout)</li>
+          <li>2: Standard error (stderr)</li>
+          <li>3+: Files, sockets, pipes, etc.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="" style="margin-top: 20px;">
+    <p class="highlight">In UNIX, "everything is a file"</p>
+    <pre><code class="ruby">file = File.open("example.txt")
+puts file.fileno  # Returns the file descriptor number
+</code></pre>
+  </div>
+</section>
+
+      <!-- PIDFD BENEFITS 1 -->
+      <section data-auto-animate>
+        <h2>pidfd Benefits</h2>
+        <ul>
+          <li class="fragment fade-up solution">Stable Process Reference</li>
+          <li class="fragment fade-up solution">Immune to PID Reuse</li>
+          <li class="fragment fade-up solution">Pollable (select/poll/epoll)</li>
+          <li class="fragment fade-up solution">Race-Free Signal Delivery</li>
+        </ul>
+      </section>
+
+      <!-- PID VS PIDFD -->
+      <section data-auto-animate>
+        <h2>PID vs pidfd</h2>
+        <img class="fragmenta" src="img/pidfd-vs-pid-illustration.svg" alt="Supervisor-Worker Model">
+      </section>
+
+<section data-auto-animate>
+  <h2>Core pidfd API</h2>
+  
+  <table style="width: 100%; border-collapse: collapse; font-size: 80%;" class="fade-in">
+    <thead>
+      <tr>
+        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #555;">Syscall</th>
+        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #555;">Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="fragment fade-up">
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>pidfd_open(pid, flags)</strong></td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Get a file descriptor for a process</td>
+      </tr>
+      <tr class="fragment fade-up">
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>pidfd_send_signal(pidfd, sig, info, flags)</strong></td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Send signals via the file descriptor</td>
+      </tr>
+      <tr class="fragment fade-up">
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>waitid(P_PIDFD, ...)</strong></td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Clean up terminated processes</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div class="fragment fade-in" style="margin-top: 20px; font-size: 80%;">
+    <p class="highlight">Works with standard file descriptor APIs (poll, select, epoll)</p>
+  </div>
+</section>
+
+      <!-- THE PROBLEM STATEMENT -->
+      <section data-transition="zoom">
+        <h2>The Problem</h2>
+        <p class="highlight center-content grow">Ruby has no pidfd support</p>
+      </section>
+
+      <!-- BUILDING THE BRIDGE INTRO -->
+      <section data-auto-animate>
+        <h2>Building the Bridge</h2>
+        <p class="center-content">How to use pidfd from Ruby?</p>
+      </section>
+
+<section style="font-size: 70%" data-auto-animate>
+  <h2>Bringing pidfd to Ruby</h2>
+  
+  <div class="two-cols">
+    <div class="col fade-right">
+      <div class="animated-box solution-box">
+        <h3>Language Integration</h3>
+        <ul>
+          <li>KJ' Feature #19322</li>
+          <li>New Ruby APIs:
+            <ul>
+              <li><code>Process.spawn_handle</code></li>
+              <li><code>Process::Handle</code> class</li>
+            </ul>
+          </li>
+          <li>Native speed & safety</li>
+          <li>Integrated with Ruby VM</li>
+          <li>Requires C-level changes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left">
+      <div class="animated-box solution-box">
+        <h3>FFI Approach</h3>
+        <ul>
+          <li>Direct syscall bindings</li>
+          <li>Works with existing Ruby</li>
+          <li>No Core changes needed</li>
+          <li>Available now</li>
+          <li>Limited by FFI overhead</li>
+          <li>What I used in Karafka</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="fragment fade-in" style="margin-top: 20px;">
+    <p class="quote" style="font-size: 0.9em;">"Pidfds are absolutely the right professional API!"</p>
+    <p style="font-size: 0.8em;">— KJ Tsanaktsidis, Ruby Core contributor</p>
+  </div>
+</section>
+
+
+      <!-- FFI INTRO -->
+      <section data-auto-animate  data-visibility="hidden">
+        <h2>Foreign Function Interface</h2>
+        <ul>
+          <li class="fragment fade-up">Ruby's FFI lets us call C functions</li>
+          <li class="fragment fade-up">We can use it to access Linux syscalls</li>
+          <li class="fragment fade-up">Requires mapping syscall numbers</li>
+          <li class="fragment fade-up">Needs platform detection code</li>
+        </ul>
+      </section>
+
+      <!-- FFI IMPLEMENTATION 1 -->
+      <section data-auto-animate>
+        <h2>FFI Implementation</h2>
+        <pre><code class="ruby" data-line-numbers="2|5|7-8|9-10|11-12|14-16">class Pidfd
+  extend FFI::Library
+  
+  begin
+    ffi_lib FFI::Library::LIBC
+
+    attach_function :fdpid_open, :syscall, 
+                   %i[long int uint], :int
+    attach_function :fdpid_signal, :syscall, 
+                   %i[long int int pointer uint], :int
+    attach_function :waitid, 
+                   %i[int int pointer uint], :int
+                   
+    # Syscall numbers (Linux x86_64)
+    PIDFD_OPEN = 434
+    PIDFD_SEND_SIGNAL = 424
+
+    API_SUPPORTED = true
+  rescue LoadError
+    API_SUPPORTED = false
+  end
+end</code></pre>
+      </section>
+
+<section data-background-image="img/syscall-table.png" data-background-size="cover" data-transition="fade-in">
+  <small style="background-color: rgba(0, 0, 0, 0.7); padding: 10px; color: white; display: inline-block; border-radius: 5px;">
+    https://gpages.juszkiewicz.com.pl/syscalls-table/syscalls.html
+  </small>
+</section>
+
+      <!-- PLATFORM CHECK -->
+      <section style="font-size: 90%"  data-transition="fade-in">
+        <h2>Platform Detection</h2>
+        <pre><code class="ruby">def self.supported?
+  # If FFI failed to load
+  return false unless API_SUPPORTED
+  
+  # Won't work on macOS or Windows
+  return false if RUBY_DESCRIPTION.include?('darwin')
+  return false if RUBY_DESCRIPTION.match?(/mswin|ming|cygwin/)
+  
+  # Not all OSes may support this (BSD)
+  new(::Process.pid)
+  true
+rescue Errors::PidfdOpenFailedError
+  false
+end</code></pre>
+        
+      </section>
+
+      <!-- PIDFD INIT -->
+      <section  data-transition="fade-in">
+        <h2>Pidfd Initialization</h2>
+        <pre><code class="ruby" data-line-numbers="11-20|3-7">def initialize(pid)
+  @mutex = Mutex.new
+  @pid = pid
+  # Call syscall to get pidfd
+  @pidfd = open(pid)
+  # Wrap as Ruby IO for polling
+  @pidfd_io = IO.new(@pidfd)
+end
+
+private
+
+def open(pid)
+  pidfd = fdpid_open(
+    pidfd_open_syscall,
+    pid,
+    0
+  )
+  
+  return pidfd if pidfd != -1
+  
+  raise Errors::PidfdOpenFailedError, pidfd
+end</code></pre>
+        
+      </section>
+
+      <!-- ALIVE CHECK -->
+      <section>
+        <h2>Process Status Check</h2>
+        <pre><code class="ruby" data-line-numbers="7-12">def alive?
+  @pidfd_select ||= [@pidfd_io]
+  
+  @mutex.synchronize do
+    return false if @cleaned
+    
+    # pidfd becomes readable when process terminates
+    # nil means not readable = still alive
+    IO.select(@pidfd_select, nil, nil, 0).nil?
+  end
+end</code></pre>
+        
+      </section>
+
+      <!-- SIGNAL METHOD -->
+      <section data-auto-animate>
+        <h2>Signal Delivery</h2>
+        <pre><code class="ruby" data-line-numbers="7-7|8|9-12">def signal(sig_name)
+  @mutex.synchronize do
+    return false if @cleaned
+    # Never signal dead processes
+    return false unless alive?
+    
+    result = fdpid_signal(
+      pidfd_signal_syscall,
+      @pidfd,
+      Signal.list.fetch(sig_name),
+      nil,
+      0
+    )
+    
+    return true if result.zero?
+    
+    raise Errors::PidfdSignalFailedError, result
+  end
+end</code></pre>
+        
+      </section>
+
+      <!-- CLEANUP METHOD -->
+      <section data-auto-animate>
+        <h2>Zombie Process Cleanup</h2>
+        <pre><code class="ruby" data-line-numbers="6-11">def cleanup
+  @mutex.synchronize do
+    return if @cleaned
+    
+    # Reap the process
+    begin
+      waitid(P_PIDFD, @pidfd, nil, WEXITED)
+    rescue Errno::ECHILD
+      # Ignore
+      # should not happen unless traps overwritten
+    end
+    
+    # Clean up resources
+    @pidfd_io.close
+    @pidfd_select = nil
+    @pidfd_io = nil
+    @pidfd = nil
+    @cleaned = true
+  end
+end</code></pre>
+        
+
+      </section>
+
+
+<section style="font-size: 70%" data-auto-animate>
+  <h2>Pidfd API Capabilities</h2>
+  
+  <div class="fade-in">
+    <h3>karafka/swarm/pidfd.rb</h3>
+  </div>
+  
+  <div class="two-cols fade-in" style="margin-top: 20px;">
+    <div class="col">
+      <div class="animated-box solution-box">
+        <h3>Core Capabilities</h3>
+        <ul>
+          <li>Create stable references to processes</li>
+          <li>Check if processes are alive</li>
+          <li>Send signals reliably</li>
+          <li>Clean up zombie processes</li>
+          <li>Cross-platform detection</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="animated-box solution-box">
+        <h3>Advanced Features</h3>
+        <ul>
+          <li>Thread-safe operation</li>
+          <li>Bidirectional monitoring</li>
+          <li>Non-direct child monitoring</li>
+          <li>Non-blocking status checks</li>
+          <li>Race-free process management</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="fade-in" style="margin-top: 20px;">
+    <pre><code class="ruby">pidfd.alive?    # Check process state
+pidfd.signal()  # Send signals safely
+pidfd.cleanup() # Prevent zombie processes</code></pre>
+  </div>
+</section>
+
+      <!-- STATE MACHINE MANAGEMENT -->
+      <section data-auto-animate>
+        <h2>State Machine Management</h2>
+        <pre><code class="ruby" data-line-numbers>def control
+  @nodes.each do |node|
+    if node.alive?
+      next if terminate_if_hanging(node)
+      next if stop_if_not_healthy(node)
+      next if stop_if_not_responding(node)
+    else
+      next if cleanup_one(node)
+      next if restart_after_timeout(node)
+    end
+  end
+end</code></pre>
+      </section>
+
+
+      <!-- ORPHAN DETECTION SLIDE -->
+      <section data-auto-animate>
+        <h2>Orphan Detection Code</h2>
+        <pre><code class="ruby" data-line-numbers="3">def on_statistics_emitted(_event)
+  periodically do
+    Kernel.exit!(orphaned_exit_code) if node.orphaned?
+
+    node.healthy
+  end
+end</code></pre>
+        <p class="fragment fade-in solution">No orphaned processes if supervisor crashes</p>
+      </section>
+
+      <!-- ORPHAN CHECK IMPLEMENTATION -->
+      <section data-auto-animate>
+        <h2>Orphan Check Implementation</h2>
+        <pre><code class="ruby" data-line-numbers="3">def orphaned?
+  # Check if supervisor is still alive
+  !@parent_pidfd.alive?
+end</code></pre>
+        <p class="fragment fade-in">Each worker tracks its parent with pidfd</p>
+        
+      </section>
+
+      <!-- LIMITATIONS -->
+      <section data-auto-animate>
+        <h2>Limitations</h2>
+        <ul>
+          <li class="fragment">Linux 5.3+ only</li>
+          <li class="fragment">Not available on macOS or Windows</li>
+          <li class="fragment">Requires FFI and syscall mapping</li>
+          <li class="fragment">Limited to processes in same PID namespace</li>
+          <li class="fragment">No built-in process group operations</li>
+          <li class="fragment">Can't access descendants automatically</li>
+        </ul>
+        
+      </section>
+
+<!-- WHEN TO USE PIDFD SLIDE -->
+<section data-transition="fade" style="font-size: 60%;">
+  <h2>When to Use pidfd</h2>
+  
+  <div class="animated-box problem-box fragment fade-in" data-fragment-index="0" style="margin-bottom: 20px;">
+    <p class="secondary" style="font-size: 1.1em;"><strong>In most cases, pidfd is overkill</strong> — even in Karafka</p>
+  </div>
+  
+  <div class="two-cols">
+    <div class="col fragment fade-right" data-fragment-index="1">
+      <div class="animated-box solution-box">
+        <p><span class="emoji" style="font-size: 90%">✅</span> Where pidfd Truly Shines</p>
+        <ul>
+          <li>Libraries running in environments you don't control</li>
+          <li>Monitoring <em>non-direct child</em> processes</li>
+          <li>Environments with competing signal handlers</li>
+          <li>Applications with security concerns around PID reuse</li>
+          <li>Systems with high process churn</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left" data-fragment-index="2">
+      <div class="animated-box problem-box">
+        <p><span class="emoji"  style="font-size: 90%">⚠️</span> Standard Approach is Usually Fine</p>
+        <ul>
+          <li>Most parent-child process management</li>
+          <li>Applications with full control over process lifecycle</li>
+          <li>Systems with moderate fork/exec rates</li>
+          <li>Applications needing cross-platform compatibility</li>
+          <li>Most regular Ruby applications</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+      <!-- LESSONS LEARNED -->
+      <section data-auto-animate>
+        <h2>Lessons Learned</h2>
+        <ul style="font-size: 90%">
+          <li class="fragment fade-up">There are so many cool low-level OS features</li>
+          <li class="fragment fade-up">Process management is much harder than it appears</li>
+          <li class="fragment fade-up">Ruby core team members are amazing!</li>
+          <li class="fragment fade-up">Stable process references are safer than PIDs</li>
+        </ul>
+      </section>
+
+<!-- WHEN TO USE PIDFD SLIDE -->
+<section data-transition="fade" style="font-size: 60%;">
+    <p class="quote">pidfd is a solution for <span class="solution">specific edge cases</span>, not a general replacement for PIDs</p>
+</section>
+
+
+<!-- UPDATED FUTURE DIRECTIONS SLIDE -->
+<section data-auto-animate="" style="font-size: 80%">
+  <h2>Future Directions</h2>
+  
+  <div class="two-cols">
+    <div class="col fragment fade-right" data-fragment-index="0">
+      <div class="animated-box solution-box">
+        <h3>Immediate Plans</h3>
+        <ul>
+          <li>Standalone gem for pidfd support</li>
+          <li>Better fallbacks for non-Linux platforms</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col fragment fade-left" data-fragment-index="1">
+      <div class="animated-box solution-box">
+        <h3>Real-time Signals</h3>
+        <ul>
+          <li>Extend to support real-time signals (SIGRTMIN+n) via sigqueue</li>
+          <li>Add access to siginfo_t data from signals</li>
+          <li>Enable signal payloads for richer IPC</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+      <!-- THANK YOU -->
+      <section>
+        <h1>Thank You</h1>
+        <p>Questions?</p>
+      </section>
+
+    </div>
+  </div>
+
+
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      transition: 'slide',
+      transitionSpeed: 'default',
+      autoAnimateDuration: 0.8,
+      autoAnimateEasing: 'ease-out',
+      autoAnimate: true,
+      backgroundTransition: 'fade',
+      plugins: [ RevealHighlight, RevealNotes ],
+      highlightConfig: {
+        // Customize highlight.js
+        tabReplace: '  ',
+        lineNumbers: true,
+        highlightOnLoad: true
+      }
+    });
+    
+    // Initialize SVG illustrations
+    Reveal.on('ready', event => {
+      // Set illustrations
+      document.querySelector('[data-id="pid-reuse-illustration"]').src = "pid-reuse-illustration.svg";
+      document.querySelector('[data-id="pidfd-vs-pid-illustration"]').src = "pidfd-vs-pid-illustration.svg";
+      document.querySelector('[data-id="zombie-process-illustration"]').src = "zombie-process-illustration.svg";
+      document.querySelector('[data-id="architecture-illustration"]').src = "architecture-illustration.svg";
+      document.querySelector('[data-id="orphan-monitoring-illustration"]').src = "orphan-monitoring-illustration.svg";
+      document.querySelector('[data-id="class-relationships-illustration"]').src = "class-relationships-illustration.svg";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <!-- Background -->
+  <rect width="800" height="500" fill="#faf9f5" />
+  
+  <!-- Supervisor Process - With grouped components -->
+  <g>
+    <!-- Main supervisor container -->
+    <rect x="250" y="50" width="300" height="160" rx="10" fill="#EBF5FB" stroke="#1976D2" stroke-width="2" stroke-dasharray="5,3" />
+    <text x="400" y="75" text-anchor="middle" fill="#1976D2" font-family="Arial" font-size="14" font-style="italic">Single Process</text>
+    
+    <!-- Supervisor component -->
+    <rect x="300" y="85" width="200" height="60" rx="10" fill="#BBDEFB" stroke="#1976D2" stroke-width="3" />
+    <text x="400" y="120" text-anchor="middle" fill="#333" font-family="Arial" font-size="20" font-weight="bold">Supervisor</text>
+    <text x="400" y="140" text-anchor="middle" fill="#333" font-family="Arial" font-size="14">PID-based control</text>
+    
+    <!-- Manager Component -->
+    <rect x="325" y="160" width="150" height="40" rx="5" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2" />
+    <text x="400" y="185" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Swarm Manager</text>
+  </g>
+  
+  <!-- Worker Nodes -->
+  <g>
+    <!-- Worker 1 -->
+    <rect x="200" y="280" width="150" height="70" rx="8" fill="#C8E6C9" stroke="#388E3C" stroke-width="2" />
+    <text x="275" y="310" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">Worker Node 0</text>
+    <text x="275" y="330" text-anchor="middle" fill="#333" font-family="Arial" font-size="14">PID: 1001</text>
+    
+    <!-- Worker 2 -->
+    <rect x="450" y="280" width="150" height="70" rx="8" fill="#C8E6C9" stroke="#388E3C" stroke-width="2" />
+    <text x="525" y="310" text-anchor="middle" fill="#333" font-family="Arial" font-size="18">Worker Node 1</text>
+    <text x="525" y="330" text-anchor="middle" fill="#333" font-family="Arial" font-size="14">PID: 1002</text>
+  </g>
+  
+  <!-- PID References - Supervisor to Workers -->
+  <g>
+    <!-- Connection to Worker 1 -->
+    <path d="M 375,210 C 350,230 325,250 275,280" fill="none" stroke="#388E3C" stroke-width="2" />
+    <rect x="295" y="240" width="60" height="25" rx="5" fill="#C8E6C9" stroke="#388E3C" stroke-width="1" />
+    <text x="325" y="257" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">PID: 1001</text>
+    
+    <!-- Connection to Worker 2 -->
+    <path d="M 425,210 C 450,230 475,250 525,280" fill="none" stroke="#388E3C" stroke-width="2" />
+    <rect x="445" y="240" width="60" height="25" rx="5" fill="#C8E6C9" stroke="#388E3C" stroke-width="1" />
+    <text x="475" y="257" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">PID: 1002</text>
+  </g>
+  
+  <!-- PID References - Workers to Supervisor (reverse direction) -->
+  <g>
+    <!-- Worker 1 to Supervisor -->
+    <path d="M 260,280 C 260,230 275,150 350,90" fill="none" stroke="#D32F2F" stroke-width="2" />
+    <rect x="225" y="190" width="70" height="25" rx="5" fill="#FFCDD2" stroke="#D32F2F" stroke-width="1" />
+    <text x="260" y="207" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">parent PID</text>
+    
+    <!-- Worker 2 to Supervisor -->
+    <path d="M 540,280 C 540,230 525,150 450,90" fill="none" stroke="#D32F2F" stroke-width="2" />
+    <rect x="490" y="190" width="70" height="25" rx="5" fill="#FFCDD2" stroke="#D32F2F" stroke-width="1" />
+    <text x="525" y="207" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">parent PID</text>
+  </g>
+  
+  <!-- Communication Channels -->
+  <g>
+    <!-- Pipe from Worker 1 -->
+    <path d="M 275,350 C 275,390 325,400 350,210" fill="none" stroke="#1976D2" stroke-width="2" stroke-dasharray="5,3" />
+    <text x="275" y="390" text-anchor="middle" fill="#1976D2" font-family="Arial" font-size="12">Health via pipe</text>
+    
+    <!-- Pipe from Worker 2 -->
+    <path d="M 525,350 C 525,390 475,400 450,210" fill="none" stroke="#1976D2" stroke-width="2" stroke-dasharray="5,3" />
+    <text x="525" y="390" text-anchor="middle" fill="#1976D2" font-family="Arial" font-size="12">Health via pipe</text>
+  </g>
+  
+  <!-- Kafka Connection -->
+  <g>
+    <rect x="300" y="430" width="200" height="50" rx="5" fill="#FFE0B2" stroke="#E65100" stroke-width="2" />
+    <text x="400" y="460" text-anchor="middle" fill="#333" font-family="Arial" font-size="16">Kafka Cluster</text>
+    
+    <!-- Kafka connections -->
+    <path d="M 275,350 L 340,430" fill="none" stroke="#E65100" stroke-width="1" stroke-dasharray="3,2" />
+    <path d="M 525,350 L 460,430" fill="none" stroke="#E65100" stroke-width="1" stroke-dasharray="3,2" />
+  </g>
+  
+  <!-- Legend -->
+  <g>
+    <rect x="50" y="430" width="200" height="60" rx="5" fill="#ffffff" stroke="#333333" stroke-width="1" />
+    
+    <rect x="60" y="440" width="20" height="10" fill="#C8E6C9" stroke="#388E3C" stroke-width="1" />
+    <text x="85" y="450" fill="#333" font-family="Arial" font-size="12" text-anchor="start">Supervisor monitors workers</text>
+    
+    <rect x="60" y="460" width="20" height="10" fill="#FFCDD2" stroke="#D32F2F" stroke-width="1" />
+    <text x="85" y="470" fill="#333" font-family="Arial" font-size="12" text-anchor="start">Workers monitor supervisor</text>
+    
+    <rect x="650" y="430" width="20" height="10" fill="none" stroke="#1976D2" stroke-width="1" stroke-dasharray="5,3" />
+    <text x="675" y="440" fill="#333" font-family="Arial" font-size="12" text-anchor="start">Health reporting</text>
+    
+    <rect x="650" y="450" width="20" height="10" fill="none" stroke="#E65100" stroke-width="1" stroke-dasharray="3,2" />
+    <text x="675" y="460" fill="#333" font-family="Arial" font-size="12" text-anchor="start">Kafka connection</text>
+  </g>
+  
+</svg>
